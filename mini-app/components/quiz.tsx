@@ -81,7 +81,7 @@ export function Quiz() {
       ) : (
         <div className="text-center">
           <p className="text-xl font-semibold mb-2">
-            You answered {score} out of {questions.length} questions with "Yes".
+            You answered {score} out of {questions.length} questions with 'Yes'.
           </p>
           {score >= 6 ? (
             <p className="text-green-600 font-medium">
