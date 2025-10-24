@@ -1,132 +1,85 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "./ui/button";
+import { Card, CardHeader, CardContent, CardFooter } from "./ui/card";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 
-const questions = [
-  {
-    text: "Do you enjoy the taste of cheddar?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you like cheese on pizza?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you prefer aged cheese over fresh cheese?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you eat cheese as a snack?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you enjoy cheese in salads?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you like cheese in sandwiches?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you enjoy cheese fondue?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you prefer cheese over other dairy products?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you like cheese in desserts?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-  {
-    text: "Do you enjoy trying new cheese varieties?",
-    options: ["Love it", "Like it", "Not a fan"],
-  },
-];
+export interface QuizProps {
+  questionIndex: number;
+}
 
-export function Quiz({ questionIndex }: { questionIndex: number }) {
+const cheeses = Array.from({ length: 50 }, (_, i) => ({
+  question: `Do you like cheese #${i + 1}?`,
+  options: ["Love it", "Like it", "Not a fan"],
+}));
+
+export function Quiz({ questionIndex }: QuizProps) {
   const router = useRouter();
-  const [answers, setAnswers] = useState<string[]>(() => {
+  const totalQuestions = cheeses.length;
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const handleSubmit = () => {
+    if (!selected) return;
     const stored = sessionStorage.getItem("quizAnswers");
-    return stored ? JSON.parse(stored) : Array(questions.length).fill("");
-  });
-
-  const question = questions[questionIndex];
-
-  useEffect(() => {
+    const answers = stored ? JSON.parse(stored) : [];
+    answers[questionIndex] = selected;
     sessionStorage.setItem("quizAnswers", JSON.stringify(answers));
-  }, [answers]);
-
-  const handleSelect = (value: string) => {
-    const newAnswers = [...answers];
-    newAnswers[questionIndex] = value;
-    setAnswers(newAnswers);
-    const next = questionIndex + 1;
-    if (next < questions.length) {
-      router.push(`/quiz/${next}`);
+    if (questionIndex + 1 < totalQuestions) {
+      router.push(`/quiz/${questionIndex + 1}`);
     } else {
-      router.push(`/quiz/${next}`); // will show result
+      router.push("/quiz/result");
     }
   };
 
-  if (!question) {
-    // Show result
+  if (questionIndex >= totalQuestions) {
+    const stored = sessionStorage.getItem("quizAnswers");
+    const answers = stored ? JSON.parse(stored) : [];
     const score = answers.reduce((acc, ans) => {
       if (ans === "Love it") return acc + 2;
       if (ans === "Like it") return acc + 1;
       return acc;
     }, 0);
-    const maxScore = questions.length * 2;
+    const maxScore = totalQuestions * 2;
     const percentage = Math.round((score / maxScore) * 100);
-
     return (
-      <div className="max-w-2xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Cheese Preference Result</h1>
-        <p className="text-xl font-semibold mb-2">
-          You scored {score} out of {maxScore} ({percentage}%).
-        </p>
-        {percentage >= 60 ? (
-          <p className="text-green-600 font-medium">
-            🎉 You like cheese!
-          </p>
-        ) : (
-          <p className="text-red-600 font-medium">
-            😕 You might not be a cheese fan.
-          </p>
-        )}
-        <button
-          onClick={() => router.push("/quiz/0")}
-          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded"
-        >
-          Retake Quiz
-        </button>
-      </div>
+      <Card className="max-w-md mx-auto mt-10">
+        <CardHeader>
+          <AlertTitle>Your Cheese Score</AlertTitle>
+        </CardHeader>
+        <CardContent>
+          <AlertDescription>
+            You scored {percentage}% on the cheese quiz!
+          </AlertDescription>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={() => router.push("/")}>Back to Home</Button>
+        </CardFooter>
+      </Card>
     );
   }
 
+  const { question, options } = cheeses[questionIndex];
+
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Cheese Preference Quiz</h1>
-      <div className="flex flex-col gap-4">
-        <label className="font-medium">{question.text}</label>
-        <div className="flex flex-col gap-2">
-          {question.options.map((opt) => (
-            <label key={opt} className="flex items-center">
-              <input
-                type="radio"
-                name={`q${questionIndex}`}
-                value={opt}
-                checked={answers[questionIndex] === opt}
-                onChange={() => handleSelect(opt)}
-                className="mr-2"
-              />
-              {opt}
-            </label>
+    <Card className="max-w-md mx-auto mt-10">
+      <CardHeader>
+        <h2 className="text-xl font-semibold">{question}</h2>
+      </CardHeader>
+      <CardContent>
+        <RadioGroup value={selected ?? undefined} onValueChange={setSelected}>
+          {options.map((opt) => (
+            <RadioGroupItem key={opt} value={opt} className="flex items-center space-x-2">
+              <span>{opt}</span>
+            </RadioGroupItem>
           ))}
-        </div>
-      </div>
-    </div>
+        </RadioGroup>
+      </CardContent>
+      <CardFooter>
+        <Button onClick={handleSubmit} disabled={!selected}>
+          Next
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
