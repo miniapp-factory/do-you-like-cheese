@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "./ui/card";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
+import { AlertTitle, AlertDescription } from "./ui/alert";
 
 export interface QuizProps {
   questionIndex: number;
