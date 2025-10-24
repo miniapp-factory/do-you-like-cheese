@@ -1,6 +1,6 @@
 "use client";
 
-import type { PageProps } from "next";
+import type { PageProps } from "next/app";
 import { Quiz } from "@/components/quiz";
 
 export default function QuestionPage({
