@@ -1,5 +1,6 @@
-import { Quiz } from "@/components/quiz";
+import { redirect } from "next/navigation";
 
-export default function QuizPage() {
-  return <Quiz />;
+export default function QuizRoot() {
+  // Redirect to the first question
+  redirect("/quiz/0");
 }
